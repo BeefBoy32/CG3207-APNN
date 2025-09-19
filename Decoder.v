@@ -39,7 +39,7 @@ module Decoder(
     output RegWrite,		// Asserted only by instructions which write to register file (load, auipc, lui, DPImm, DPReg);
     output MemWrite,		// Asserted only by store (sw)
     output MemtoReg,		// Asserted only by load (lw)
-    // output [1:0] ALUSrcA, 	// Needed for lui, auipic. Refer to the microarchitecture for its use. Uncomment wire and port map in RV.v as well
+    output [1:0] ALUSrcA, 	// Needed for lui, auipic. Refer to the microarchitecture for its use. Uncomment wire and port map in RV.v as well
     output ALUSrcB,		// Asserted by all instructions which use an immediate (load, store, lui, auipc, DPImm). Needs to be expanded to a 2-bit signal to support link functionality for jal, jalr. Change wire width in RV.v as well
     output reg [2:0] ImmSrc, 	// 000 for U, 010 for UJ, 011 for I, 110 for S, 111 for SB.
     output reg [3:0] ALUControl	// 0000 for add, 0001 for sub, 1110 for and, 1100 for or, 0010 for sll, 1010 for srl, 1011 for sra, 0001 for branch, 0000 for all others.
@@ -51,7 +51,63 @@ module Decoder(
 // For multiplexing with number of inputs > 2, a case construct within an always block is a natural fit. DO NOT to use nested ternary assignment operator as it hampers the readability of your code.
     
     	// todo: Implement Decoder here
-	
+    	
+    assign PCS = Opcode == 7'h63 ? 2'b01 : ( Opcode == 7'h6F ? 2'b10 : 2'b00 );
+    assign MemtoReg = Opcode == 7'h03 ? 1'b1 : 1'b0;
+    assign RegWrite = (Opcode == 7'h23 || Opcode == 7'h63) ? 1'b0 : 1'b1; 
+    assign MemWrite = (Opcode == 7'h23) ? 1'b1 : 1'b0;
+    assign ALUSrcB = (Opcode == 7'h6F) ? 1'bx : ((Opcode == 7'h63 || Opcode == 7'h33) ? 1'b0 : 1'b1);
+    assign ALUSrcA[0] = (Opcode == 7'h6F) ? 1'bx : ((Opcode == 7'h17 || Opcode == 7'h37) ? 1'b1 : 1'b0);
+    assign ALUSrcA[1] = (Opcode == 7'h17) ? 1'b1 : (Opcode == 7'h37 ? 1'b0 : 1'bx);
+
+    always@(*) begin
+    case(Opcode)
+        // DP Reg
+        7'h33: begin
+            ImmSrc = 3'bxxx;
+            ALUControl = { Funct3, Funct7[5] };
+        end
+        // DP Imm
+        7'h13: begin
+            ImmSrc = 3'b011;
+            ALUControl[3:1] = {Funct3, 1'b0}; // No need to check for srli, srai
+        end
+        // Load
+        7'h03: begin
+            ImmSrc = 3'b011;
+            ALUControl = 4'b0000; // add
+        end
+        // Store
+        7'h23: begin
+            ImmSrc = 3'b110;
+            ALUControl = 4'b0000; // add
+        end
+        // Branch
+        7'h63: begin
+            ImmSrc = 3'b111;
+            ALUControl = 4'b0001; // sub
+        end
+        // jal
+        7'h6F: begin
+            ImmSrc = 3'b010;
+            ALUControl = 4'bxxxx; // No ALU result needed
+        end
+        // auipc
+        7'h17: begin
+            ImmSrc = 3'b000;
+            ALUControl = 4'b0000; // add
+        end
+        // lui
+        7'h37: begin
+            ImmSrc = 3'b000;
+            ALUControl = 4'b0000; // add
+        end
+        default: begin
+            ImmSrc = 3'bxxx;
+            ALUControl = 4'bxxxx;
+        end
+        endcase
+    end
 	    
 endmodule
 

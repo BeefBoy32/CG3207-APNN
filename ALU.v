@@ -57,24 +57,28 @@ module ALU(
     
 	always@(Src_A, Src_B, ALUControl, S_wider, ShOut) begin
         // default values; help avoid latches
-		C_0 = 0 ; 
-		Src_A_comp = {1'b0, Src_A} ;
-		Src_B_comp = {1'b0, Src_B} ;
+        C_0 = 0 ; 
+        Src_A_comp = {1'b0, Src_A} ;
+        Src_B_comp = {1'b0, Src_B} ;
     
 		case(ALUControl)
 			4'b0000: ALUResult = S_wider[31:0] ;	//add          
-	            	4'b0001: begin				//sub
-				C_0[0] = 1 ;  
-				Src_B_comp = {1'b0, ~ Src_B} ;
-				ALUResult = S_wider[31:0] ;
-			end
-	            	4'b1110: ALUResult = Src_A & Src_B ;	// and
-	            	4'b1100: ALUResult = Src_A | Src_B ; 	// or
-	            
+	        4'b0001: begin				//sub
+                C_0[0] = 1 ; // C_0 is 0 as to convert to 2's complement from 1's complement, add 1 to the 1's complement
+                Src_B_comp = {1'b0, ~ Src_B} ; // 1's complement
+                ALUResult = S_wider[31:0] ;
+            end
+            4'b1110: ALUResult = Src_A & Src_B ;	// and
+            4'b1100: ALUResult = Src_A | Src_B ; 	// or
+        
 			// include cases for shifts		// shifts
+			4'b0010: ALUResult = ShOut;
+			4'b1010: ALUResult = ShOut;
+			4'b1011: ALUResult = ShOut;
+			
 			default: ALUResult = 32'bx;
-	        endcase
-	    end
+        endcase
+    end
       
 	assign Z = (ALUResult == 0) ? 1 : 0 ;
     
@@ -84,7 +88,9 @@ module ALU(
     
 	// todo: make shifter connections here
 	// Sh signals can be derived directly from the appropriate ALUControl bits
-    
+    assign Sh = (ALUControl[1:0] == 2'b11) ? ALUControl[1:0] : ALUControl[3:2];
+    assign Shamt5 = Src_B;
+    assign ShIn = Src_A;
     
 	// Instantiate Shifter        
 	Shifter Shifter1(

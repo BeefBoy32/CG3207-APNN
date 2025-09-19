@@ -46,6 +46,28 @@ module PC_Logic( // This is a combinational module, unlike ARM. See the note bel
     
     
 	// todo: conditional logic goes here
+	always @(*) begin
+		if (PCS == 2'b01) begin // conditional branch
+			case (Funct3)
+				3'b000: PCSrc = ALUFlags[2]; // beq
+				3'b001: PCSrc = ~ALUFlags[2]; // bne
+				3'b100: PCSrc = ALUFlags[1]; // blt
+				3'b101: PCSrc = ~ALUFlags[1]; // bge
+				3'b110: PCSrc = ALUFlags[0]; // bltu
+				3'b111: PCSrc = ~ALUFlags[0]; // bgeu
+				default: PCSrc = 1'b0; // should not occur
+			endcase
+		end
+		else if (PCS == 2'b10) begin // jal
+			PCSrc = 1'b1;
+		end
+		else if (PCS == 2'b11) begin // jalr
+			PCSrc = 1'b1; // will need to be expanded to 2 bits to support jalr properly
+		end
+		else begin // non-control instructions
+			PCSrc = 1'b0;
+		end
+	end
 	
 	
 endmodule

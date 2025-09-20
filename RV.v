@@ -126,7 +126,16 @@ module RV #(
                                          // supporting lb/sb/lbu/lh/sh/lhu/lw/sw. Hint: funct3
 
     // todo: other datapath connections here
-	
+
+    // Instructions mapping
+    assign InstrImm = Instr[31:7]; // For Extend module
+    assign Opcode = Instr[6:0];
+    assign Funct3 = Instr[14:12];
+    assign Funct7 = Instr[31:25];
+    assign rs1 = Instr[19:15];
+    assign rs2 = Instr[24:20];
+    assign rd = Instr[11:7];
+
     // Instantiate RegFile
     RegFile RegFile1( 
                     CLK,

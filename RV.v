@@ -136,6 +136,16 @@ module RV #(
     assign rs2 = Instr[24:20];
     assign rd = Instr[11:7];
 
+    // Decoder Signals Mapping (with muxes where needed)
+    assign WE = RegWrite;
+    assign WD = MemtoReg ? ReadData : ALUResult; // Result to be written to RegFile
+    assign Src_A = ALUSrcA[0] ? (ALUSrcA[1] ? 0 : 32'b0) : RD1; // ALUSrcA Double Mux
+    assign Src_B = ALUSrcB ? ExtImm : RD2; // ALUSrcB Mux
+
+    // PC Calculation
+    assign PC_Offset = (PCSrc ? ExtImm : 32'd4) ; // PCSrc Mux
+    assign PC_IN = PC + PC_Offset ; // Next PC value
+
     // Instantiate RegFile
     RegFile RegFile1( 
                     CLK,
@@ -185,7 +195,7 @@ module RV #(
                     ALUControl,
                     ALUResult,
                     ALUFlags
-                );                
+                );     
     
     // Instantiate ProgramCounter    
     ProgramCounter #(.PC_INIT(PC_INIT)) ProgramCounter1(

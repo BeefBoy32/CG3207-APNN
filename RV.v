@@ -146,6 +146,9 @@ module RV #(
     assign PC_Offset = (PCSrc ? ExtImm : 32'd4) ; // PCSrc Mux
     assign PC_IN = PC + PC_Offset ; // Next PC value
 
+    // Write Data to DMEM
+    assign WriteData = RD2; // for sw
+
     // Instantiate RegFile
     RegFile RegFile1( 
                     CLK,

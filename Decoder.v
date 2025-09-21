@@ -70,7 +70,7 @@ module Decoder(
         // DP Imm
         7'h13: begin
             ImmSrc = 3'b011;
-            ALUControl[3:1] = {Funct3, 1'b0}; // No need to check for srli, srai
+            ALUControl = {Funct3, 1'b0}; // No need to check for srli, srai
         end
         // Load
         7'h03: begin

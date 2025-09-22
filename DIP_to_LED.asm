@@ -41,12 +41,14 @@ main:
 	li s0, MMIO_BASE		# MMIO_BASE. Implemented as lui+addi
 	# Could have done lw s0,MMIO_BASE (ARM style) instead of the li above, provided MMIO_BASE: .word 0xFFFF0000 was declared in the .data (DMEM) section instead of .eqv
 	addi s1, s0, LED_OFF		# LED address = MMIO_BASE + LED_OFF
+    addi s5, s0, SEVENSEG_OFF   # SEVENSEG_OFF = MMIO_BASE + SEVENSEG_OFF
 	li  s2, DIP_OFF			# note that this li doesn't translate to lui, unlike the li in line 41.
 	add s2, s0, s2			# DIP address = MMIO_BASE + DIP_OFF. Could have been done in a way similar to LED address, but done this way to have a DP reg instruction
 loop:
 	lw s3, delay_val		# reading the loop counter value
 	lw s4, (s2)			# reading DIPS
 	sw s4, (s1)			# writing to LEDS
+    sw s4, (s5)         # writing to SEVENSEG
 
 wait:
 	addi s3, s3, -1		# subtract 1

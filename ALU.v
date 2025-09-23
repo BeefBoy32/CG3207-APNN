@@ -88,7 +88,7 @@ module ALU(
     
 	// todo: make shifter connections here
 	// Sh signals can be derived directly from the appropriate ALUControl bits
-    assign Sh = (ALUControl[1:0] == 2'b11) ? ALUControl[1:0] : ALUControl[3:2];
+    assign Sh = (ALUControl[0] == 1'b1) ? ALUControl[1:0] : ALUControl[3:2];
     assign Shamt5 = Src_B;
     assign ShIn = Src_A;
     

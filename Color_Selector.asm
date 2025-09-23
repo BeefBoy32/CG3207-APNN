@@ -36,6 +36,11 @@ main:
 	add s2, s0, s2			    # DIP address = MMIO_BASE + DIP_OFF. Could have been done in a way similar to LED address, but done this way to have a DP reg instruction
     li s11, 0x0                 # use for OLED_Data
     li s10, 0x0	                # use for oled_toggle
+    addi s9, s0, OLED_CTRL_OFF  # OLED_CTRL address = MMIO_BASE + OLED_CTRL_OFF
+    li t0, 0x15                 # set OLED ctrl to 0x20
+    sw t0, (s9)                 # initialize OLED ctrl to 0x20
+    addi s9, s0, OLED_COL_OFF   # OLED_COL address = MMIO_BASE + OLED_COL_OFF
+    addi s8, s0, OLED_DATA_OFF  # OLED_DATA address = MMIO_BASE + OLED_DATA_OFF
 
 check_btn:
     lw s3, delay_val    # reading the loop counter value
@@ -141,8 +146,23 @@ wrap:
 update_leds:
     sw s11, (s5)         # writing to SEVENSEG
     sw s10, (s1)
+    li t0, 0
+    li t1, 96
+    li t2, 0
+    li t3, 65
 wait:
 	addi s3, s3, -1		# subtract 1
+    addi t2, t2, 1
+    bne t2, t3, write_data
+    li t2, 0
+    addi t0, t0, 1
+    beq t0, t1, reset_col
+    j write_data
+reset_col:
+    li t0, 0
+write_data:
+    sw t0, (s9)     # write to OLED_COL
+    sw s11, (s8)     # write to OLED_DATA
 	beq s3, zero, check_btn	# exit the loop
 	jal zero, wait		# continue in the loop (could also have written j wait).
 

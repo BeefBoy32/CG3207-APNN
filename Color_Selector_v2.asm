@@ -19,6 +19,7 @@
 .eqv LED_OFF				0x60 #WO
 .eqv SEVENSEG_OFF			0x80 #WO
 .eqv CYCLECOUNT_OFF			0xA0 #RO
+.eqv NUM_PIXELS                         0x1700 #5888 pixels
 
 # ------- <code memory (Instruction Memory ROM) begins>
 .text	## IROM segment: IROM_BASE to IROM_BASE+2^IROM_DEPTH_BITS-1
@@ -38,9 +39,11 @@ main:
 	addi s8, zero, 21
 	sw s8, (s7) # Set OLEDCtrl to 16 bit mode, and vary_col mode
 	addi s8, s0, OLED_DATA_OFF # SEVENOLED_DATA_OFF = MMIO_BASE + OLED_DATA_OFF
-	lui s11, 0xFFFFF  #Load colour white
-	addi s11, s11, -1                # use for OLED_Data
+	#lui s11, 0xFFFFF  #Load colour white
+	#addi s11, s11, -1                # use for OLED_Data
+	li s11, 0x0
 	li s10, 0x0                # use for oled_toggle
+	li s9, NUM_PIXELS
     
 
 check_btn:
@@ -147,9 +150,15 @@ wrap:
 update_leds:
     sw s11, (s5)         # writing to SEVENSEG
     sw s10, (s1)
+    li t0, 0
+    
+update_OLED:
+	beq t0, s9, wait
+	addi t0, t0, 1
+	sw s11, (s8)
+	j update_OLED
 wait:
-	addi s3, s3, -1		# subtract 1
-    	sw s11, (s8)
+	addi s3, s3, -1		# subtract 1	
 	beq s3, zero, check_btn	# exit the loop
 	jal zero, wait		# continue in the loop (could also have written j wait).
 

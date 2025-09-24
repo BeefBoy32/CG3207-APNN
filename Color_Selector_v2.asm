@@ -19,7 +19,7 @@
 .eqv LED_OFF				0x60 #WO
 .eqv SEVENSEG_OFF			0x80 #WO
 .eqv CYCLECOUNT_OFF			0xA0 #RO
-.eqv NUM_PIXELS                         0x1700 #5888 pixels
+.eqv NUM_PIXELS             0x1800 #5888 pixels
 
 # ------- <code memory (Instruction Memory ROM) begins>
 .text	## IROM segment: IROM_BASE to IROM_BASE+2^IROM_DEPTH_BITS-1

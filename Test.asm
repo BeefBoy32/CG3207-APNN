@@ -51,7 +51,7 @@ main:
 	#addi s9, s0, OLED_COL_OFF
 	#addi s10, s0, OLED_ROW_OFF
 
-    	lui s11, 0x1  #Load colour white
+    	lui s11, 0xFFFFF  #Load colour white
     	addi s11, s11, -1
     	#sw s11, (s8)
 

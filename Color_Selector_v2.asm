@@ -184,7 +184,7 @@ halt:
 # Total number of constants+variables should not exceed 2^DMEM_DEPTH_BITS/4 (128 if DMEM_DEPTH_BITS=9).
 
 DMEM:
-delay_val: .word 50000      # a constant, at location DMEM+0x00 (10 for sim, 50000 for hardware)
+delay_val: .word 10     # a constant, at location DMEM+0x00 (10 for sim, 50000 for hardware)
 .align 9                    # To set the address at this point to be 512-byte aligned, i.e., DMEM+0x200
 STACK_INIT:                 # Stack pointer can be initialised to this location - DMEM+0x200 (i.e., the address of stack_top)
 #------- <Data Memory ends>

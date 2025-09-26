@@ -75,7 +75,7 @@ module test_Wrapper #(
         end else begin
             
             // Sample PB and SEVENSEGHEX and LED_OUT when LED_PC transitions from 0x11 to 0x12
-            if (LED_PC == LW_LED_PC_VALUE + 1) begin
+            if (LED_PC == LW_LED_PC_VALUE) begin
                 sampled_pb <= PB;
                 sampled_sevenseg <= SEVENSEGHEX[15:11];
                 sampled_led_out <= LED_OUT[1:0];
@@ -170,7 +170,8 @@ module test_Wrapper #(
             end
         end
     end
-
+    
+    /*
     // Monitor PC transitions for debugging
 	reg [6:0] prev_led_pc = 7'h00;
 	always @(posedge CLK) begin
@@ -182,10 +183,15 @@ module test_Wrapper #(
 			prev_led_pc <= LED_PC;
 		end
 	end
+	*/
     
     // Test summary at end of simulation
     initial begin
-        #2000;  // Wait for simulation to complete
+        RESET = 1; #10; RESET = 0; //hold reset state for 10 ns.
+        $display("[%0t] Starting self-checking testbench", $time);
+        
+        PB = 3'b010; // Toggle colour
+        #1000000;  // Wait for simulation to complete
         $display("\n==================== TEST SUMMARY ====================");
         $display("Total Tests: %0d", test_count);
         $display("Passed:      %0d", pass_count);
@@ -200,16 +206,7 @@ module test_Wrapper #(
         $display("=====================================================\n");
         $finish;
     end
-    
-    // Note: This testbench is for DIP_to_LED program. Other assembly programs require appropriate modifications.
-    // STIMULI
-    initial
-    begin
-        RESET = 1; #10; RESET = 0; //hold reset state for 10 ns.
-        PB = 3'b010; // Toggle colour
-        #1000;
-    end
-    
+        
     // GENERATE CLOCK       
     always          
     begin

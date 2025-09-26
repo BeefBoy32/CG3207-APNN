@@ -3,3 +3,10 @@ project_2/project_2.ip_user_files/*
 project_2/project_2.cache/*
 project_2/project_2.hw/*
 project_2/project_2.runs/*
+project_2/vivado.jou
+project_2/project_2.srcs/utils_1/imports/synth_1/TOP.dcp
+project_2/project_2.xpr
+project_2/*.log
+project_2/.Xil
+project_2/*.jou
+project_2/*.str

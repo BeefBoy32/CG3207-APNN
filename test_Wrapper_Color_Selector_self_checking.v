@@ -3,9 +3,14 @@ module test_Wrapper #(
     parameter N_LEDs_OUT = 8,
     parameter N_DIPs     = 16,
     parameter N_PBs      = 3,
-    parameter LW_PB_PC_ADDRESS      = 9'h044,  // bits[8:2] = 0x11
-    parameter SW_SEVENSEG_PC_ADDRESS= 9'h124,  // bits[8:2] = 0x49
-    parameter SW_LEDOUT_PC_ADDRESS  = 9'h128   // bits[8:2] = 0x4A
+    /*parameter LW_PB_PC_ADDRESS      = 9'h044,  // bits[8:2] = 0x11
+    parameter SW_SEVENSEG_PC_ADDRESS = 9'h124,  // bits[8:2] = 0x49
+    parameter SW_LEDOUT_PC_ADDRESS  = 9'h128,   // bits[8:2] = 0x4A
+    parameter WAIT_PC_ADDRESS       = 9'h140*/
+    parameter LW_PB_PC_ADDRESS      = 9'h050,  // bits[8:2] = 0x11
+    parameter SW_SEVENSEG_PC_ADDRESS = 9'h130,  // bits[8:2] = 0x49
+    parameter SW_LEDOUT_PC_ADDRESS  = 9'h134,   // bits[8:2] = 0x4A
+    parameter WAIT_PC_ADDRESS       = 9'h14c
 )
 ();
 
@@ -13,6 +18,7 @@ module test_Wrapper #(
     localparam LW_LED_PC_VALUE         = LW_PB_PC_ADDRESS[8:2];      // 0x11
     localparam SW_LED_PC_VALUE         = SW_SEVENSEG_PC_ADDRESS[8:2]; // 0x49
     localparam SW_LEDOUT_LED_PC_VALUE  = SW_LEDOUT_PC_ADDRESS[8:2];   // 0x4A
+    localparam WAIT_PC_VALUE = WAIT_PC_ADDRESS[8:2];
 
     // Signals
     reg  [N_DIPs-1:0] DIP = 0;
@@ -43,7 +49,7 @@ module test_Wrapper #(
 
     reg [1:0] color_selected; // 0=Red, 1=Green, 2=Blue
 
-    reg sample_valid, led_sample_valid;
+    reg sample_valid, led_sample_valid, no_action_sample_valid;
     reg check_pending, led_check_pending;
     integer test_count = 0;
     integer pass_count = 0;
@@ -70,11 +76,11 @@ module test_Wrapper #(
             sampled_blue <= 0; expected_blue <= 0; actual_blue <= 0;
             sampled_led_out <= 0; expected_led_out <= 0; actual_led_out <= 0;
             color_selected <= 0;
-            sample_valid <= 0; led_sample_valid <= 0;
+            sample_valid <= 0; led_sample_valid <= 0; no_action_sample_valid <= 0;
             check_pending <= 0; led_check_pending <= 0;
             test_count <= 0; pass_count <= 0; fail_count <= 0;
         end else begin
-            // SAMPLE at LW_LED_PC_VALUE
+            // SAMPLE at LW_LED_PC_VALUEc
             if (LED_PC == LW_LED_PC_VALUE) begin
                 sampled_red   <= SEVENSEGHEX[15:11];
                 sampled_green <= SEVENSEGHEX[10:5];
@@ -82,14 +88,22 @@ module test_Wrapper #(
                 sampled_led_out <= LED_OUT[1:0];
 
                 // Determine sample validity
-                sample_valid     <= (PB[2] || PB[0]); // Increment/decrement
-                led_sample_valid <= PB[1];            // LED_OUT update
-
-                // Handle color selection toggle
-                if (PB == 3'b010) begin
+                if ((PB == 3'b100) || (PB == 3'b001)) begin
+                    sample_valid <= 1'b1;
+                    led_sample_valid <= 1'b0;
+                    no_action_sample_valid <= 1'b0;
+                end 
+                else if (PB == 3'b010) begin
+                    led_sample_valid <= 1'b1;
                     color_selected <= (color_selected + 1) % 3;
-                    sample_valid <= 0; // Don't check increment/decrement this cycle
+                    sample_valid <= 1'b0;
+                    no_action_sample_valid <= 1'b0;
                 end
+                else begin 
+                    no_action_sample_valid <= 1'b1;
+                    sample_valid <= 1'b0;
+                    led_sample_valid <= 1'b0;
+                end 
 
                 $display("[%0t] SAMPLE: LED_PC=0x%02X, PB=3'b%03b, color_selected=%0d, SEVENSEG R=5'b%05b G=6'b%06b B=5'b%05b, LED_OUT=2'b%02b",
                          $time, LED_PC, PB, color_selected, SEVENSEGHEX[15:11], SEVENSEGHEX[10:5], SEVENSEGHEX[4:0], LED_OUT[1:0]);
@@ -119,6 +133,21 @@ module test_Wrapper #(
                 actual_led_out <= LED_OUT[1:0];
                 led_check_pending <= 1'b1;
                 expected_led_out <= (sampled_led_out == 2'b10) ? 2'b00 : sampled_led_out + 1;
+            end
+
+            if ((LED_PC == WAIT_PC_VALUE) && no_action_sample_valid) begin
+                test_count <= test_count + 1;
+                $display("[%0t] TEST #%0d: PB=3'b%03b, SEVENSEG expected R=5'b%05b G=6'b%06b B=5'b%05b LED_OUT=2'b%02b, actual R=5'b%05b G=6'b%06b B=5'b%05b LED_OUT=2'b%02b",
+                         $time, test_count, PB, sampled_red, sampled_green, sampled_blue, sampled_led_out, SEVENSEGHEX[15:11], SEVENSEGHEX[10:5], SEVENSEGHEX[4:0], LED_OUT[1:0]);
+
+                if (SEVENSEGHEX[15:11] == sampled_red && SEVENSEGHEX[10:5] == sampled_green && SEVENSEGHEX[4:0] == sampled_blue && sampled_led_out == LED_OUT[1:0]) begin
+                    pass_count <= pass_count + 1;
+                    $display("         PASS");
+                end else begin
+                    fail_count <= fail_count + 1;
+                    $display("         FAIL");
+                end
+                no_action_sample_valid <= 0;
             end
 
             // Perform SEVENSEG check
@@ -168,6 +197,12 @@ module test_Wrapper #(
 
         RESET = 1; #10; RESET = 0;
         $display("[%0t] Starting synchronized PB sequence", $time);
+        // Test for all buttons pressed
+        PB = 3'b111;
+        wait(no_action_sample_valid==1);
+            // wait until test is done
+        wait(no_action_sample_valid==0);
+
 
         forever begin
             PB = pb_sequence[pb_index];

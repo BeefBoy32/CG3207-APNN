@@ -48,6 +48,10 @@ main:
     li s11, 0x0                 # use for oled_data
     li s10, 0x0                 # use for oled_toggle
     li s9, NUM_PIXELS           # num of pixels in oled
+    
+    # initialize values
+    lw s3, delay_val
+    j update_leds
 
 check_btn:
     lw s3, delay_val            # reading the loop counter value

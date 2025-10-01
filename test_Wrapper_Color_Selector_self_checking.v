@@ -202,8 +202,34 @@ module test_Wrapper #(
         wait(no_action_sample_valid==1);
             // wait until test is done
         wait(no_action_sample_valid==0);
-
-
+        
+        PB = 3'b010;
+        wait((check_pending==1) || (led_check_pending==1));
+            // wait until test is done
+        wait((check_pending==0) && (led_check_pending==0));
+        PB = 3'b100;
+        #16_000_000;
+        PB = 3'b001;
+        #16_000_000;
+        
+        PB = 3'b010;
+        wait((check_pending==1) || (led_check_pending==1));
+            // wait until test is done
+        wait((check_pending==0) && (led_check_pending==0));
+        PB = 3'b100;
+        #8_000_000;
+        PB = 3'b001;
+        #8_000_000;
+        
+        PB = 3'b010;
+        wait((check_pending==1) || (led_check_pending==1));
+            // wait until test is done
+        wait((check_pending==0) && (led_check_pending==0)); 
+        PB = 3'b100;
+        #8_000_000;
+        PB = 3'b001;
+        #8_000_000;
+        /*
         forever begin
             PB = pb_sequence[pb_index];
             // wait until DUT sets check_pending or led_check_pending
@@ -213,12 +239,12 @@ module test_Wrapper #(
             PB = 3'b000;  // release button
             #10_000;      // short delay to avoid glitches
             pb_index = (pb_index + 1) % 3; // next PB
-        end
+        end*/
     end
 
     // End simulation
     initial begin
-        #5_000_000; // 5 ms simulation
+        #65_000_000; // 5 ms simulation
         $display("\n==================== TEST SUMMARY ====================");
         $display("Total Tests: %0d", test_count);
         $display("Passed:      %0d", pass_count);

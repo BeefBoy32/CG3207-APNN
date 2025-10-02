@@ -244,7 +244,7 @@ module test_Wrapper #(
 
     // End simulation
     initial begin
-        #65_000_000; // 5 ms simulation
+        #65_000_000; // 65 ms simulation
         $display("\n==================== TEST SUMMARY ====================");
         $display("Total Tests: %0d", test_count);
         $display("Passed:      %0d", pass_count);

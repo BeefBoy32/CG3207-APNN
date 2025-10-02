@@ -51,10 +51,12 @@ module PC_Logic( // This is a combinational module, unlike ARM. See the note bel
 			case (Funct3)
 				3'b000: PCSrc = ALUFlags[2]; // beq
 				3'b001: PCSrc = ~ALUFlags[2]; // bne
-				3'b100: PCSrc = ALUFlags[1]; // blt
-				3'b101: PCSrc = ~ALUFlags[1]; // bge
-				3'b110: PCSrc = ALUFlags[0]; // bltu
-				3'b111: PCSrc = ~ALUFlags[0]; // bgeu
+
+				// Currently ALUFlags is X for bit 1 and 0, dont use incase of illegal instructions
+				// 3'b100: PCSrc = ALUFlags[1]; // blt
+				// 3'b101: PCSrc = ~ALUFlags[1]; // bge
+				// 3'b110: PCSrc = ALUFlags[0]; // bltu
+				// 3'b111: PCSrc = ~ALUFlags[0]; // bgeu
 				default: PCSrc = 1'b0; // should not occur
 			endcase
 		end

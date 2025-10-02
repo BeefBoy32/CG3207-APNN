@@ -7,10 +7,14 @@ module test_Wrapper #(
     parameter SW_SEVENSEG_PC_ADDRESS = 9'h124,  // bits[8:2] = 0x49
     parameter SW_LEDOUT_PC_ADDRESS  = 9'h128,   // bits[8:2] = 0x4A
     parameter WAIT_PC_ADDRESS       = 9'h140*/
-    parameter LW_PB_PC_ADDRESS      = 9'h050,  // bits[8:2] = 0x11
-    parameter SW_SEVENSEG_PC_ADDRESS = 9'h130,  // bits[8:2] = 0x49
-    parameter SW_LEDOUT_PC_ADDRESS  = 9'h134,   // bits[8:2] = 0x4A
-    parameter WAIT_PC_ADDRESS       = 9'h14c
+//    parameter LW_PB_PC_ADDRESS      = 9'h050,  // bits[8:2] = 0x11
+//    parameter SW_SEVENSEG_PC_ADDRESS = 9'h130,  // bits[8:2] = 0x49
+//    parameter SW_LEDOUT_PC_ADDRESS  = 9'h134,   // bits[8:2] = 0x4A
+//    parameter WAIT_PC_ADDRESS       = 9'h14c
+    parameter LW_PB_PC_ADDRESS       = 9'h060,  // lw s4, (s6)
+    parameter SW_SEVENSEG_PC_ADDRESS = 9'h134,  // sw s11, (s5)
+    parameter SW_LEDOUT_PC_ADDRESS   = 9'h138,  // sw s10, (s1)
+    parameter WAIT_PC_ADDRESS        = 9'h150   // wait loop
 )
 ();
 

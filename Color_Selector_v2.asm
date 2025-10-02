@@ -161,9 +161,7 @@ toggle_rgb:
     # 0 for R, 1 for G, 2 for B
     addi s10, s10, 1         # increment color toggle
     li t0, 3                 # check if it is 3
-    beq s10, t0, wrap        # if so, wrap around
-    j update_leds
-wrap:
+    bne s10, t0, update_leds # if not 3, continue to update_leds
     li s10, 0                # wrap around to 0
     j update_leds
 

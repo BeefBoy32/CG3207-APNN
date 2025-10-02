@@ -63,9 +63,10 @@ module PC_Logic( // This is a combinational module, unlike ARM. See the note bel
 		else if (PCS == 2'b10) begin // jal
 			PCSrc = 1'b1;
 		end
-		else if (PCS == 2'b11) begin // jalr
-			PCSrc = 1'b1; // will need to be expanded to 2 bits to support jalr properly
-		end
+		// jalr not implemented yet
+		// else if (PCS == 2'b11) begin // jalr
+		// 	PCSrc = 1'b1; // will need to be expanded to 2 bits to support jalr properly
+		// end
 		else begin // non-control instructions
 			PCSrc = 1'b0;
 		end

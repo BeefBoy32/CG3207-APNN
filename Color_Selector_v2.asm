@@ -48,6 +48,11 @@ main:
     li s11, 0x0                 # use for oled_data
     li s10, 0x0                 # use for oled_toggle
     li s9, NUM_PIXELS           # num of pixels in oled
+
+    # store some constants
+    li t2, 0xF800               # red mask
+    li t0, 11
+    sra t3, t2, t0              # blue max value (use of sra is okay because most significant bits is 0)
     
     # initialize values
     lw s3, delay_val
@@ -84,7 +89,7 @@ inc_blue:
     # blue is [4:0]
     # check if lower 5 bits is 31, if so do nothing
     # Mask out blue field
-    andi t0, s11, 0x1F
+    and t0, s11, t3            # t0 = s11 & 0x1F
     li t1, 31
     beq t0, t1, update_leds
 
@@ -108,12 +113,13 @@ inc_red:
     # red is [15:11]
     # check if bits [15:11] is 31, if so do nothing
     # Mask out red field
-    li   t0, 0xF800          # load mask (upper 5 bits)
-    and  t1, s11, t0         # t1 = s11 & 0xF800
-    beq  t1, t0, update_leds # if already max red, skip
+    and  t1, s11, t2         # t1 = s11 & 0xF800
+    beq  t1, t2, update_leds # if already max red, skip
 
     # Increment red (shifted left by 11, so add 0x800 each step)
-    li   t0, 0x800
+    li   t0, 1
+    li   t1, 11
+    sll  t0, t0, t1           # t0 = 0x800 (use of sll operation)
     add  s11, s11, t0
 
     j update_leds
@@ -127,7 +133,7 @@ dec_oled_data:
 
 dec_blue:
     # blue is [4:0], Mask out blue
-    andi t0, s11, 0x1F       # t0 = blue value
+    and t0, s11, t3          # t0 = blue value
     beqz t0, update_leds     # if blue == 0, do nothing
 
     addi s11, s11, -1        # else decrement
@@ -142,9 +148,9 @@ dec_green:
     j update_leds            # jump to update_leds
 
 dec_red:
-    # red is [15:11], Mask out red
-    li   t0, 0xF800          # load mask
-    and  t1, s11, t0         # t1 = red bits
+    # red is [15:11], Shift right by 11 to get red bits in lower bits
+    li   t0, 11
+    srl  t1, s11, t0         # t1 = red value
     beqz t1, update_leds     # if red == 0, do nothing
 
     li   t0, 0x800           # amount to decrement red
@@ -188,7 +194,7 @@ halt:
 # Total number of constants+variables should not exceed 2^DMEM_DEPTH_BITS/4 (128 if DMEM_DEPTH_BITS=9).
 
 DMEM:
-delay_val: .word 10     # a constant, at location DMEM+0x00 (10 for sim, 50000 for hardware)
+delay_val: .word 50000     # a constant, at location DMEM+0x00 (10 for sim, 50000 for hardware)
 .align 9                    # To set the address at this point to be 512-byte aligned, i.e., DMEM+0x200
 STACK_INIT:                 # Stack pointer can be initialised to this location - DMEM+0x200 (i.e., the address of stack_top)
 #------- <Data Memory ends>
